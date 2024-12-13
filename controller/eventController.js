@@ -1,6 +1,9 @@
 const User = require('../models/userModel.js');
 const Event = require('../models/eventModel.js');
+const Bid = require('../models/bidModel.js');
 
+
+//Event is created by creator
 const createEvent = async(req,res) =>{
     try {
         const user = await User.findById(req.body.createdBy);
@@ -12,6 +15,7 @@ const createEvent = async(req,res) =>{
             eventName:req.body.eventName,
             startTime:req.body.startTime,
             endTime:req.body.endTime,
+            eventDate:req.body.eventDate,
             description:req.body.description,
             createdBy:req.body.createdBy,
             items: req.body.items.map(item => ({
@@ -29,7 +33,7 @@ const createEvent = async(req,res) =>{
 }
 
 
-
+//Getting a particular event create by user
 const getEvent = async (req, res) => {
     try {
       const { eventId } = req.params;
@@ -52,7 +56,7 @@ const getEvent = async (req, res) => {
     }
   };
   
-
+//Getting all event create by particular user
   const getEventsByUser = async (req, res) => {
     try {
       const { userId } = req.params;
@@ -77,7 +81,8 @@ const getEvent = async (req, res) => {
     }
   };
   
-  
+
+  //Getting all evennt saved in database
   const getAllEvents = async (req, res) => {
     try {
       // Fetch all events, populate user details
@@ -90,4 +95,48 @@ const getEvent = async (req, res) => {
   };  
 
 
-module.exports = {createEvent,getEvent, getEventsByUser, getAllEvents};
+
+//Now creating event room where event, items and bidder who are participating will show
+const getCreatorEventRoom = async (req, res) => {
+    try {
+      const { eventId } = req.params;
+  
+      const event = await Event.findById(eventId); // Ensure `event` is fetched properly
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+  
+      const bids = await Bid.find({ event: eventId })
+        .populate("user", "name email")
+        .lean();
+  
+      const rankedBids = bids.map((bid) => ({
+        bidder: bid.user,
+        items: bid.bids.map((itemBid) => {
+          const latestAmount = itemBid.amounts[itemBid.amounts.length - 1]; // Get the last amount
+          return {
+            item: itemBid.item,
+            latestAmount,
+          };
+        }),
+      }));
+  
+      rankedBids.forEach((bid) => {
+        bid.items.sort((a, b) => b.latestAmount - a.latestAmount); // Sort descending
+      });
+  
+      res.status(200).json({
+        eventName: event.eventName,
+        eventDate:event.eventDate,
+        startTime:event.startTime,
+        endTime:event.endTime,
+        items: event.items,
+        bidders: rankedBids,
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "Server Error", error: error.message });
+    }
+  };
+  
+
+module.exports = {createEvent,getEvent, getEventsByUser, getAllEvents, getCreatorEventRoom};

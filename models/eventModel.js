@@ -6,6 +6,10 @@ const eventSchema = mongoose.Schema(
       type: String,
       required: [true, "Please add the event name"],
     },
+    eventDate:{
+      type:Date,
+      required:[true, "Please add date"],
+    },
     startTime: {
       type: Date,
       required: [true, "Please add the start time"],
