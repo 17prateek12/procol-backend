@@ -1,15 +1,23 @@
 const express = require('express');
-const {createEvent, getEvent, getEventsByUser, getAllEvents, getCreatorEventRoom} = require('../controller/eventController.js');
-const protect = require("../middleware/authMiddleware.js");
-const verifyEventCreator = require("../middleware/verifyEventCreator.js");
-
-
+const eventController=require("../controllers/eventController");
+const authMiddleware = require('../middlewares/authMiddleware');
 const router = express.Router();
-router.post('/event-create', protect, createEvent);
-router.get('/events/:eventId', protect ,getEvent);
-router.get('/users/:userId/events', protect ,getEventsByUser);
-router.get('/events', getAllEvents);
-router.get('/events/:eventId/room', protect,verifyEventCreator , getCreatorEventRoom);
+const verifyEventCreator = require('../middlewares/verifyEventCreator');
+
+
+router.post('/eventdetails', authMiddleware,eventController.EventDetails);
+
+
+router.get('/getLiveEvents', eventController.getLiveEvents );
+
+
+router.get('/getEvents/:eventId', eventController.getEventWithItems );
+
+router.get("/events", eventController.getAllEvents);
+
+// Route to fetch events created by logged-in user
+router.get("/mineEvent", authMiddleware, eventController.getEventsByUser);
 
 
 module.exports = router;
+

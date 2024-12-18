@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler');
-const Event = require('../models/eventModel.js')
+const Event = require('../models/Event.js')
 
 //Middleware logic if user is creator of event or not then only he/she can view event room, to protect event room because of security purpose 
 const verifyEventCreator = asyncHandler(async(req , res , next) =>{
