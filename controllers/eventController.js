@@ -35,7 +35,11 @@ exports.EventDetails = async (req, res) => {
       {
         eventId: savedEvent._id,
         columns: columns.map(col => col.name || col), // Save dynamic column names
-        rows: rows.map(row => new Map(Object.entries(row))), // Convert row objects to Maps
+        rows: rows.map(row => ({
+          data: Object.fromEntries(
+            Object.entries(row).map(([key, value]) => [key, String(value)]) // Ensure values are strings
+          ),
+        })),
       },
     ];
 
